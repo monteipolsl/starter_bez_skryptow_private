@@ -157,7 +157,6 @@ module tb_full_pipeline;
 		@(posedge clk);
 	  end
 	        
-	  //may cause
 	  //$display("[3] after while loop (should be 1) s_ready = ", s_ready);
       s_valid <= 1'b0;
       s_data  <= 'x; 
@@ -212,14 +211,14 @@ module tb_full_pipeline;
 				expected.pop_front(); //remove one mismatch so following words will be ok
 				errors++;
 			end
-			else begin //m_data === expected[0]
+			else if (m_data === expected[0]) begin //m_data === expected[0]
 				$display("PASS: m_data = %h == expected[0] == %h", m_data, expected[0]);
 				expected.pop_front();
 			end
 		end
 		
 		if (errors != 0) begin
-			//$display("Errors in scoreboard: %h", errors);
+			$display("Errors in scoreboard: %h", errors);
 		end
 		
 	end
