@@ -18,7 +18,8 @@ def main(argv=None):
 
     # TODO: read a.trace, report the measurements and run the checks.
     print(f"TODO: analyze {a.trace}")
-    
+
+    ### OPERATING ON FILE ###
     # opening a trace file produced by testbench
     try:
         with open(a.trace, "r") as f:
@@ -102,6 +103,8 @@ def main(argv=None):
     if not phases:
         errors.append("trace contain no phases")
 
+    ###OPERTING ON DATA FROM FILE ###
+
     #returns True if on the input valid && ready == 1
     def input_handshake(cycle):
         s_valid, s_ready, s_data, m_valid, m_ready, m_data = cycle
@@ -117,9 +120,9 @@ def main(argv=None):
         if "x" or "X" in value:
             return None
         else:
-            return int(value, 16)
-        
-    #number of word from input and output side    
+            return int(value, 16) #convertion from hex to decimal value
+
+
     print(f"Trace: {a.trace}")
     print()
 
@@ -129,9 +132,9 @@ def main(argv=None):
 
         #phase_no is a list od cycles form current analyzed phase
         cycles = phases[phase_no]
-        cycle_count = len(cycles)
+        cycle_count = len(cycles) #number of cycles in analyzed phase
         
-        #handsahe counters
+        #handshake counters
         input_count = 0
         output_count = 0
         
@@ -150,18 +153,19 @@ def main(argv=None):
         for cycle_no, cycle in enumerate(cycles):
             s_valid, s_ready, s_data, m_valid, m_ready, m_data = cycle
 
-            #Analyze of input interface
+            #Analyze of INPUT interface
             if input_handshake(cycle):
                 input_count += 1
                 input_words.append(s_data)
 
                 if first_input_cycle is None:
                     first_input_cycle = cycle_no
+
             # cycles with backpressure
             if s_valid == 1 and s_ready == 0:
                 input_backpressure += 1
 
-            #Analyze of output interface
+            #Analyze of OUTPUT interface
             if output_handshake(cycle):
                 output_count += 1
                 output_words.append(m_data)
@@ -186,8 +190,8 @@ def main(argv=None):
        ### REPORT FROM CURRENT PHASE ###
         print(f"Phase:               {phase_no}: ")
         print(f"cycles:              {cycle_count}")
-        print(f"input words:         {input_count}")
-        print(f"output words:        {output_count}")
+        print(f"input words count:   {input_count}")
+        print(f"output words count:  {output_count}")
         print(f"input throughput:    {input_throughput:.3f} words/cycle")
         print(f"output throughput:   {output_throughput:.3f} words/cycle")
         print(f"input backpressure:  {input_backpressure} cycles")
@@ -200,72 +204,75 @@ def main(argv=None):
 
         print()
 
-    ### HANDSHAKE PROTOCOLS ON BOTH SIDES ###
+        ### HANDSHAKE PROTOCOLS ON BOTH SIDES ###
 
-    ### INPUT SIDE ###
-    previous_waiting_data = None #beginning
-    for cycle_no, cycle in enumerate(cycles):
-        s_valid, s_ready, s_data, m_valid, m_ready, m_data = cycle
-
-        if s_valid == 1 and s_ready == 0:
-            if previous_waiting_data is not None:
-                if ("x" not in previous_waiting_data and  "x" not in s_data and previous_waiting_data != s_data):
-                    errors.append(f"phase {phase_no}, cycle {cycle_no}: "
-                                  f"s_data changed while s_valid=1 and s_ready=0")
-            previous_waiting_data = s_data
-        else:
-            #reset the memory because the waiting condition is no longer effect valid=1 & ready=1
-            previous_waiting_data = None
-
-    ### OUTPUT SIDE ###
-    previous_waiting_data = None
-    for cycle_no, cycle in enumerate(cycles):
-        s_valid, s_ready, s_data, m_valid, m_ready, m_data = cycle
-
-        if m_valid == 1 and m_ready == 0:
-            if previous_waiting_data is not None:
-                if ("x" not in previous_waiting_data and  "x" not in m_data and previous_waiting_data != m_data):
-                    errors.append(f"phase {phase_no}, cycle {cycle_no}: "
-                                  f"m_data changed while m_valid=1 and m_ready=0")
-            previous_waiting_data = m_data
-        else:
-            #reset the memory because the waiting condition is no longer effect valid=1 & ready=1
-            previous_waiting_data = None
-
-    ### CHECK IF EVERY WORD THAT ENTERED THE MODULE DURING A GIVEN PHASE LEAVES IT DURING THE SAME PHASE ###
-    if input_count != output_count:
-        errors.append(f"phase {phase_no}: input/output count mismatch"
-                      f"in: {input_count} != out: {output_count}")
-
-    if len(input_words) == len(output_words):
-        for word_no, (input_word, output_word) in enumerate(zip(input_words, output_words)): #the same cycle
-            if "x" not in input_word and "x" not in output_word:
-                if hex_convert(input_word) != hex_convert(output_word):
-                    errors.append(f"phase {phase_no}: word_number {word_no}:  mismatch"
-                                  f"in: {input_word}, out: {output_word}")
-
-    ### PHASE 1 RULES ###
-    if phase_no == 1:
+        ### INPUT SIDE ###
+        previous_waiting_data = None #beginning
         for cycle_no, cycle in enumerate(cycles):
             s_valid, s_ready, s_data, m_valid, m_ready, m_data = cycle
 
-            #FIRST RULE (input transfer on every cycle)
-            if not (s_ready == 1 and s_valid == 1): #no transfer in that cycle
-                errors.append(f"phase {phase_no}: cycle {cycle_no}: "
-                              f"expected input transfer every cycle")
+            if s_valid == 1 and s_ready == 0:
+                if previous_waiting_data is not None:
+                    if ("x" not in previous_waiting_data and  "x" not in s_data and previous_waiting_data != s_data):
+                        errors.append(f"phase {phase_no}, cycle {cycle_no}: "
+                                      f"s_data changed while s_valid=1 and s_ready=0")
+                previous_waiting_data = s_data
+            else:
+                #reset the memory because the waiting condition is no longer effect valid=1 & ready=1
+                previous_waiting_data = None
 
-            #SECOND RULE
-            if s_ready == 0:
-                errors.append(f"phase {phase_no}: cycle {cycle_no}: s_ready = 0 ")
+        ### OUTPUT SIDE ###
+        previous_waiting_data = None
+        for cycle_no, cycle in enumerate(cycles):
+            s_valid, s_ready, s_data, m_valid, m_ready, m_data = cycle
 
-            #THIRD RULE (output transfer on every cycle)
-            if not (m_ready == 1 and m_valid == 1): #no transfer in that cycle
-                errors.append(f"phase {phase_no}: cycle {cycle_no}: "
-                              f"expected output transfer every cycle")
+            if m_valid == 1 and m_ready == 0:
+                if previous_waiting_data is not None:
+                    if ("x" not in previous_waiting_data and  "x" not in m_data and previous_waiting_data != m_data):
+                        errors.append(f"phase {phase_no}, cycle {cycle_no}: "
+                                      f"m_data changed while m_valid=1 and m_ready=0")
+                previous_waiting_data = m_data
+            else:
+                #reset the memory because the waiting condition is no longer effect valid=1 & ready=1
+                previous_waiting_data = None
+
+        ### CHECK IF EVERY WORD THAT ENTERED THE MODULE DURING A GIVEN PHASE LEAVES IT DURING THE SAME PHASE ###
+        if input_count != output_count:
+            errors.append(f"phase {phase_no}: input/output count mismatch"
+                          f"numbers of in: {input_count} != numbers of out: {output_count}")
+
+        #works correct regardless of the 2 cycles
+        if len(input_words) == len(output_words):
+            for word_no, (input_word, output_word) in enumerate(zip(input_words, output_words)): #the same cycle
+                if "x" not in input_word and "x" not in output_word:
+                    if hex_convert(input_word) != hex_convert(output_word):
+                        errors.append(f"phase {phase_no}: word_number {word_no}:  mismatch"
+                                      f"in: {input_word} != out: {output_word}")
+                    else:
+                        print(f"phase {phase_no}: word_number {word_no}:  "
+                              f"in: {input_word} == out: {output_word}")
+
+        ### PHASE 1 RULES ###
+        if phase_no == 1:
+            for cycle_no, cycle in enumerate(cycles):
+                s_valid, s_ready, s_data, m_valid, m_ready, m_data = cycle
+
+                #FIRST RULE (input transfer on every cycle)
+                if not (s_ready == 1 and s_valid == 1): #no transfer in that cycle
+                    errors.append(f"phase {phase_no}: cycle {cycle_no}: "
+                                  f"expected input transfer every cycle")
+                #SECOND RULE
+                if s_ready == 0:
+                    errors.append(f"phase {phase_no}: cycle {cycle_no}: s_ready = 0 ")
+
+                #THIRD RULE (output transfer on every cycle)
+                if not (m_ready == 1 and m_valid == 1): #no transfer in that cycle
+                    errors.append(f"phase {phase_no}: cycle {cycle_no}: "
+                                  f"expected output transfer every cycle")
 
     print()
     if errors:
-        print("CHECKS: FAIL")
+        print("CHECKS: FAILS")
         for error in errors:
             print(f"ERROR: {error}")
             
