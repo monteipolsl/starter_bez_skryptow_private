@@ -144,23 +144,21 @@ module tb_full_pipeline;
     //   in every clock cycle, without an idle cycle between the words.
     //   Drive the signals the way a register clocked by clk would, so that the
     //   DUT and the rest of the testbench see stable values at each rising edge.
-    task automatic send(input logic [W-1:0] d);
-	  //from upstream block (tb)
+    task automatic send(input logic [W-1:0] d);    
+	  s_data  <= d; 
+      s_valid <= 1'b1; 
       
-	  s_data  <= d;
-      s_valid <= 1'b1;
-      
-	  //$display("[1] before writting to buffer (should be 1) @(posedge clk) s_ready = ", s_ready);
-	  @(posedge clk);//po tym clk przepisujemy s_data -> reg
-	  //$display("[2] after buffer is full (should be 0) @(posedge clk) s_ready = ", s_ready);
+	  //to stabilize the signals
+	  @(posedge clk); 
+
+	  //waiting for s_ready=1 to get new value
 	  while (!s_ready) begin
 		@(posedge clk);
 	  end
-	        
-	  //$display("[3] after while loop (should be 1) s_ready = ", s_ready);
+	   
+	  //IDLE state after word was transferred
       s_valid <= 1'b0;
-      s_data  <= 'x; 
-   
+      s_data  <= 'x;    
     endtask
 
     // wait until n words have left the DUT, then a few idle cycles to catch
@@ -195,30 +193,28 @@ module tb_full_pipeline;
 	always @(posedge clk) begin
 	
 		//upstream handshake
+		//getting the generated value and pushing it into queue
 		if (s_ready && s_valid) begin
 			expected.push_back(s_data);
 		end	
 		
 		//downstream handshake
 		if (m_ready && m_valid) begin
-		
+			//if queue is empty but m_valid=1
 			if (expected.size() == 0) begin
-				$display("ERROR: unexpected m_data word: %h", m_data);
+				$display("ERROR: unexpected m_data word in reg: %d", m_data);
 				errors++;
 			end
 			else if (m_data !== expected[0]) begin //!== because of X and Z
-				$display("ERROR: data mismatch: m_data = %h || expected = %h", m_data, expected[0]);
+				$display("ERROR: %0t data mismatch: m_data = %d || expected = %d", $time, m_data, expected[0]);
 				expected.pop_front(); //remove one mismatch so following words will be ok
 				errors++;
 			end
-			else if (m_data === expected[0]) begin //m_data === expected[0]
-				$display("PASS: m_data = %h == expected[0] == %h", m_data, expected[0]);
+			else if (m_data === expected[0]) begin 
+				$display("PASS: %0t m_data = %d == expected[0] == %d", $time, m_data, expected[0]);
 				expected.pop_front();
 			end
-		end
-		
-		if (errors != 0) begin
-			$display("Errors in scoreboard: %h", errors);
+			
 		end
 		
 	end

@@ -20,14 +20,10 @@ module full_pipeline #(
     output logic [W-1:0] m_data
 );
 
-  //registers for connecting to output ports
-  //logic			ready_reg
-  //logic 		valid_reg;
+  //register for connecting to output port
   logic [W-1:0] data_reg;
   
-  //connecting registers to output ports
-  //assign s_ready = ready_reg;
-  //assign m_valid = valid_reg;
+  //connecting register to output port
   assign m_data  = data_reg;
   
   always_ff @(posedge clk) begin
@@ -43,7 +39,6 @@ module full_pipeline #(
           s_ready <= 1'b1;
         end
 	    //handshake, writing to buffer
-		//ograniczenie w postaci możliwych problemów czasowych w połaczeniu z tb i send(), propozycja (rozbicie na dwa cykle czasowe zeby sygnały zdązyły się ustalić w rzeczywistości)
 		if (s_ready && s_valid) begin
 			data_reg <= s_data;       
 			m_valid <= 1'b1;
@@ -51,6 +46,5 @@ module full_pipeline #(
         end
     end
   end
-  
   
 endmodule
