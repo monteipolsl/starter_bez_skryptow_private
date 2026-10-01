@@ -28,6 +28,16 @@ def main(argv=None):
         print(f"ERROR: cannot read {a.trace}")
         return 1
 
+    # returns True if on the input handshake valid && ready == 1
+    def input_handshake(cycle):
+        s_valid, s_ready, s_data, m_valid, m_ready, m_data = cycle
+        return s_ready == 1 and s_valid == 1
+
+    # returns True if on the output handshake valid && ready == 1
+    def output_handshake(cycle):
+        s_valid, s_ready, s_data, m_valid, m_ready, m_data = cycle
+        return m_ready == 1 and m_valid == 1
+
     # structure of dictionary
     # {
     # 1: [cycle1, cycle2, ...],
@@ -85,7 +95,7 @@ def main(argv=None):
 
         cycle = (s_valid, s_ready, s_data, m_valid, m_ready, m_data)
 
-        # adding to dictionary at current phase the current cycle
+        #adding to dictionary at current phase the current cycle
         phases[current_phase].append(cycle)
 
         #adding to list analyzed lines in current phase 
@@ -100,17 +110,7 @@ def main(argv=None):
     if not phases:
         errors.append("trace contain no phases")
 
-    ###OPERTING ON DATA FROM FILE sink.txt###
-
-    # returns True if on the input handshake valid && ready == 1
-    def input_handshake(cycle):
-        s_valid, s_ready, s_data, m_valid, m_ready, m_data = cycle
-        return s_ready == 1 and s_valid == 1
-
-    # returns True if on the output handshake valid && ready == 1
-    def output_handshake(cycle):
-        s_valid, s_ready, s_data, m_valid, m_ready, m_data = cycle
-        return m_ready == 1 and m_valid == 1
+    ### OPERTING ON DATA FROM FILE sink.txt ###
 
     print(f"Trace: {a.trace}")
     print()
