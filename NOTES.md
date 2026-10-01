@@ -5114,7 +5114,7 @@ Handshake correctness and data sequence consistency between input and output are
 Exit code 0 indicates a successful analysis, while 1 indicates that an error was detected.
 
 It should be noted that implementing a single register introduces a latency of 2 clock cycles for transferring data from input to output. This is caused by implementing handshake handling on both the input and output sides.
-However, as soon as the input-side handshake is satisfied and the data from the previous write has been read from the buffer (output-side handshake), the pending data is written to the register on the next clock edge.
+However, as soon as the input-side handshake is satisfied and the data from the previous write has been read from the buffer (output-side handshake), the pending data is written to the register on the next clock edge. Using FIFO memory can be a solution to the 2 cycles problem using read and write pointers.
 
 This implementation also causes "ERROR" messages to be printed when running "run.bat test". They indicate that, in phase 1, s_ready and m_valid are not always high. In phase 1, s_valid and m_ready are controlled by the testbench.
 
