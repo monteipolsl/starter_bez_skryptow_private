@@ -20,30 +20,31 @@ module full_pipeline #(
     output logic [W-1:0] m_data
 );
 
-  //registers for connecting to output ports
-  logic			ready_reg
-  logic 		valid_reg;
+  //register for connecting to output port
   logic [W-1:0] data_reg;
   
-  //connecting registers to output ports
-  assign s_ready = ready_reg;
-  assign m_valid = valid_reg;
+  //connecting register to output port
   assign m_data  = data_reg;
   
   always_ff @(posedge clk) begin
     //synchronous reset
     if (rst) begin
-      	ready_reg <= 1'b0;
-      	valid_reg <= 1'b0;
-    	data_reg  <= '0;
+      	s_ready <= 1'b1; //ready for new data
+      	m_valid <= 1'b0; //no data in reg
+    	data_reg  <= '0; //resetting the reg
     end else begin
-      if (s_ready && m_valid) begin
-        s_data <= data_reg;        
-      end else begin
-        s_data <= '0;
-      end
+		//reading from buffer
+	    if (m_valid && m_ready) begin          
+          m_valid <= 1'b0;
+          s_ready <= 1'b1;
+        end
+	    //handshake, writing to buffer
+		if (s_ready && s_valid) begin
+			data_reg <= s_data;       
+			m_valid <= 1'b1;
+			s_ready <= 1'b0;      
+        end
     end
   end
-  
   
 endmodule
