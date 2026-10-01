@@ -1,4 +1,5 @@
 1. HOW THE PROJECT WORKS AND WHY THE REGISTERS ARE NEEDED
+
 The project implements a valid/ready data pipeline in the rtl/full_pipeline.sv module
 
 The main idea is to separate the input and output sides with a register storing one data word. The register also acts as a single-entry buffer:
@@ -39,6 +40,7 @@ If the data matches, a PASS message confirming the data match is printed.
 
 
 2. IMPORTANT ASSUMPTIONS AND DESIGN DECISIONS
+
 Assumptions:
 - the reset is synchronous and active-high,
 - the reset occurs only at the beginning of the simulation,
@@ -49,6 +51,7 @@ Assumptions:
 
 
 3. make test RESULT AND WHAT IT SAYS ABOUT THE PROJECT
+
 Example output after completing the implementation:
 
 tb\tb_full_pipeline.sv:210: warning: method function 'pop_front' is being called as a task.
@@ -5116,12 +5119,14 @@ However, as soon as the input-side handshake is satisfied and the data from the 
 This implementation also causes "ERROR" messages to be printed when running "run.bat test". They indicate that, in phase 1, s_ready and m_valid are not always high. In phase 1, s_valid and m_ready are controlled by the testbench.
 
 4. CHANGES TO THE PROVIDED FILES
+
 - rtl/full_pipeline.sv - replacing the combinational placeholder with a registered buffer handling valid/data,
 - tb/tb_full_pipeline.sv - implementing send() and the scoreboard in the designated locations,
 - scripts/analyze.py - adding sink.txt file handling, data and metric extraction, protocol checking, and error handling.
 - NOTES.md - documentation of design decisions and results.
 
 5. LIMITATIONS AND POSSIBLE IMPROVEMENTS
+
 The following should be considered:
 - using an active-low asynchronous reset,
 - more extensive corner-case tests,
