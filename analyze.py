@@ -235,7 +235,7 @@ def main(argv=None):
             for word_no, (input_word, output_word) in enumerate(zip(input_words, output_words)):  # the same cycle
                 if "x" not in input_word and "x" not in output_word:
                     if input_word != output_word:
-                        errors.append(f"phase {phase_no}: word_number {word_no}:  mismatch"
+                        errors.append(f"phase {phase_no}: word_number {word_no}:  mismatch "
                                       f"in: {input_word} != out: {output_word}")
 
         ### PHASE 1 RULES ###
