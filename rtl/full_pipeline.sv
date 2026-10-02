@@ -37,13 +37,13 @@ module full_pipeline #(
 	    if (m_valid && m_ready) begin          
           m_valid <= 1'b0;
           s_ready <= 1'b1;
-      end
+      	end
 	    //handshake, writing to buffer
-		  if (s_ready && s_valid) begin
-			    data_reg <= s_data;       
-			    m_valid <= 1'b1;
-			    s_ready <= 1'b0;      
-      end
+		if (s_ready && s_valid) begin
+			data_reg <= s_data;       
+			m_valid <= 1'b1;
+			s_ready <= 1'b0;      
+     	end
     end
   end
   
